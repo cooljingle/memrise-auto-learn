@@ -23,4 +23,4 @@ The easiest method is through an extension/add-on on chrome/firefox:
 
 Then add the script using the following link: https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 
-If you come across any issues or have a suggestion you can leave your feedback in the forum thread: (link tbc)
+If you come across any issues or have a suggestion you can leave your feedback in the forum thread: https://community.memrise.com/t/userscript-memrise-auto-learn/11500/1
