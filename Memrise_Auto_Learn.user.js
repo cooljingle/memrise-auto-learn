@@ -3,17 +3,69 @@
 // @namespace      https://github.com/cooljingle
 // @description    Fast-track the growth level of words you are planting
 // @match          https://www.memrise.com/course/*/garden/learn*
-// @version        0.0.2
+// @version        0.0.3
 // @updateURL      https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @grant          none
 // ==/UserScript==
 
 $(document).ready(function() {
+    var localStorageKeyIdentifier = "memrise-audio-learn-key",
+        shortcutKeyCode = JSON.parse(localStorage.getItem(localStorageKeyIdentifier)) || 113, //corresponds to F2 but you can replace this with your own shortcut key; see http://keycode.info/,
+        linkHtml = `<a data-toggle='modal' data-target='#auto-learn-modal'>Auto Learn</a>`,
+        modalHtml =
+        `
+<div class='modal fade' id='auto-learn-modal' tabindex='-1' role='dialog'>
+    <div class='modal-dialog' role='document'>
+        <div class='modal-content'>
+            <div class='modal-header'>
+                <button type='button' class='close' data-dismiss='modal'><span >×</span></button>
+                <h1 class='modal-title' id='all-typing-modal-label'>Auto Learn Settings</h1>
+            </div>
+            <div class='modal-body'>
+                <div>
+                    <h4>Shortcut key code:</h4>
+                    <input id='auto-learn-key' type='text'  style="width:60px;height:20px" maxlength="3">
+                    <em style='font-size:85%'>Default is 113 (F2); see http://keycode.info/ for other codes</em>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+`;
+
+    $("body").append(modalHtml);
+    $('#left-area').append(linkHtml);
+    $('#auto-learn-modal').on('shown.bs.modal', function() {
+        $(document).off('focusin.modal'); //enable focus events on modal
+    });
+    $('#auto-learn-key')
+        .val(shortcutKeyCode)
+        .change(function () {
+            shortcutKeyCode = Number($(this).val());
+            localStorage.setItem(localStorageKeyIdentifier, $(this).val());
+        });
+
+    $(window).keydown(function(e) {
+        if(e.which === shortcutKeyCode) {
+            $('#autoLearn').trigger('click');
+        }
+    });
+
     function insertAutoLearn() {
-        $('.hint').last().append("<span style='position: absolute; right: -105px'>Auto learn<input id='autoLearn' style='margin-left: 5px; margin-bottom: 3px' type='checkbox'></span>");
-        $('#autoLearn').change(function(){
-            MEMRISE.garden.boxes.current().autoLearn = $(this).is(':checked');
+        $('.js-plant-ico').first().append(`
+           <div id="autoLearn" class="ico-growth lev6 due-for-review" style="top: 120px;zoom: 0.5;cursor: pointer" title="Auto learn">
+               <div id="autoLearnStatus" style="top: 32px;position: absolute;width: 100px;zoom: 1.5;right: -27px;color: darkgrey">Auto learn OFF</div>
+           </div>
+        `);
+
+        $('#autoLearn').click(function(){
+            var autoLearn = !MEMRISE.garden.boxes.current().autoLearn;
+            MEMRISE.garden.boxes.current().autoLearn = autoLearn;
+            $(this).toggleClass("due-for-review");
+            $('#autoLearnStatus')
+                .css('color', autoLearn ? 'limegreen' : 'darkgrey')
+                .text(autoLearn ? 'Auto learn ON' : 'Auto learn OFF');
         });
     }
 
@@ -43,8 +95,12 @@ $(document).ready(function() {
                 var cached_function = MEMRISE.garden.register;
                 return function() {
                     var thinguser = arguments[0];
-                    if(arguments[1] === 1 && thinguser.autoLearn){
-                        autoLearnedId = thinguser.thing_id;
+                    if(thinguser.autoLearn){
+                        if(arguments[1] === 1) {
+                            autoLearnedId = thinguser.thing_id;
+                        } else {
+                            thinguser.autoLearn = false;
+                        }
                     }
                     return cached_function.apply(this, arguments);
                 };
