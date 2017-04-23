@@ -3,7 +3,7 @@
 // @namespace      https://github.com/cooljingle
 // @description    Fast-track the growth level of words you are planting
 // @match          https://www.memrise.com/course/*/garden/learn*
-// @version        0.0.3
+// @version        0.0.4
 // @updateURL      https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @grant          none
@@ -54,9 +54,25 @@ $(document).ready(function() {
 
     function insertAutoLearn() {
         $('.js-plant-ico').first().append(`
-           <div id="autoLearn" class="ico-growth lev6 due-for-review" style="top: 120px;zoom: 0.5;cursor: pointer" title="Auto learn">
-               <div id="autoLearnStatus" style="top: 32px;position: absolute;width: 100px;zoom: 1.5;right: -27px;color: darkgrey">Auto learn OFF</div>
-           </div>
+<div id="autoLearn" class="ico-growth lev6 due-for-review" title="Auto learn" style="
+top: 60px;
+transform: scale(0.5);
+transform-origin: top right;
+-moz-transform: scale(0.5);
+-moz-transform-origin: top right;
+cursor: pointer">
+    <div id="autoLearnStatus" style="
+    top: 52px;
+    position: absolute;
+    width: 100px;
+    transform: scale(1.5);
+    transform-origin: top right;
+    -moz-transform: scale(1.5);
+    -moz-transform-origin: top right;
+    right: -40px;
+    color: darkgrey">
+        Auto learn OFF</div>
+</div>
         `);
 
         $('#autoLearn').click(function(){
