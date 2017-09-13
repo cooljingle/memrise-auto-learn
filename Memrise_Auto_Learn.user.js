@@ -3,7 +3,7 @@
 // @namespace      https://github.com/cooljingle
 // @description    Fast-track the growth level of words you are planting
 // @match          https://www.memrise.com/course/*/garden/learn*
-// @version        0.0.4
+// @version        0.0.5
 // @updateURL      https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @grant          none
@@ -99,7 +99,7 @@ cursor: pointer">
                 if(autoLearnedId) {
                     MEMRISE.garden.boxes.num--;
                     MEMRISE.garden.boxes.remove_all_future_matching({
-                        thing_id: autoLearnedId
+                        learnable_id: autoLearnedId
                     });
                     MEMRISE.garden.boxes.num++;
                     autoLearnedId = undefined;
@@ -110,12 +110,12 @@ cursor: pointer">
             MEMRISE.garden.register = (function() {
                 var cached_function = MEMRISE.garden.register;
                 return function() {
-                    var thinguser = arguments[0];
-                    if(thinguser.autoLearn){
+                    var context = arguments[0];
+                    if(context.autoLearn){
                         if(arguments[1] === 1) {
-                            autoLearnedId = thinguser.thing_id;
+                            autoLearnedId = context.learnable_id;
                         } else {
-                            thinguser.autoLearn = false;
+                            context.autoLearn = false;
                         }
                     }
                     return cached_function.apply(this, arguments);
@@ -144,12 +144,12 @@ cursor: pointer">
             var thinguser = request.responseJSON && request.responseJSON.thinguser,
                 correctAnswer = getValue(settings.data, "score") === "1",
                 canUpdate = getValue(settings.data, "update_scheduling") !== "false",
-                box = thinguser && _.findLast(MEMRISE.garden.boxes._list, {
-                    answered: true,
-                    thing_id: thinguser.thing_id,
-                    column_a: thinguser.column_a,
-                    column_b: thinguser.column_b,
-                    autoLearn: true
+                box = thinguser && _.findLast(MEMRISE.garden.boxes._list, function(i) {
+                    return i.answered === true &&
+                        i.autoLearn === true &&
+                        i.thinguser.thing_id === thinguser.thing_id &&
+                        i.thinguser.column_a === thinguser.column_a &&
+                        i.thinguser.column_b === thinguser.column_b;
                 }),
                 isValidRequest = !!(thinguser && correctAnswer && canUpdate && box && thinguser.growth_level < 6);
 
