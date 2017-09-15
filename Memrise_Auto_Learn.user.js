@@ -3,7 +3,7 @@
 // @namespace      https://github.com/cooljingle
 // @description    Fast-track the growth level of words you are planting
 // @match          https://www.memrise.com/course/*/garden/learn*
-// @version        0.0.5
+// @version        0.0.6
 // @updateURL      https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @grant          none
@@ -103,7 +103,6 @@ cursor: pointer">
                     });
                     MEMRISE.garden.boxes.num++;
                     autoLearnedId = undefined;
-                    MEMRISE.garden.boxes.reorder_future_to_be_interesting();
                 }
             }
 
