@@ -3,7 +3,7 @@
 // @namespace      https://github.com/cooljingle
 // @description    Fast-track the growth level of words you are planting
 // @match          https://www.memrise.com/course/*/garden/learn*
-// @version        0.0.6
+// @version        0.0.7
 // @updateURL      https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @grant          none
@@ -146,9 +146,7 @@ cursor: pointer">
                 box = thinguser && _.findLast(MEMRISE.garden.boxes._list, function(i) {
                     return i.answered === true &&
                         i.autoLearn === true &&
-                        i.thinguser.thing_id === thinguser.thing_id &&
-                        i.thinguser.column_a === thinguser.column_a &&
-                        i.thinguser.column_b === thinguser.column_b;
+                        i.learnable_id === thinguser.learnable_id;
                 }),
                 isValidRequest = !!(thinguser && correctAnswer && canUpdate && box && thinguser.growth_level < 6);
 
