@@ -3,7 +3,7 @@
 // @namespace      https://github.com/cooljingle
 // @description    Fast-track the growth level of words you are planting
 // @match          https://www.memrise.com/course/*/garden/learn*
-// @version        0.0.9
+// @version        0.0.10
 // @updateURL      https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @grant          none
@@ -11,6 +11,8 @@
 
 $(document).ready(function() {
     var localStorageKeyIdentifier = "memrise-audio-learn-key",
+        autoLearnedBoxes = [],
+        flashLoadCount = 0,
         shortcutKeyCode = JSON.parse(localStorage.getItem(localStorageKeyIdentifier)) || 113, //corresponds to F2 but you can replace this with your own shortcut key; see http://keycode.info/,
         linkHtml = `<a data-toggle='modal' data-target='#auto-learn-modal'>Auto Learn</a>`,
         modalHtml =
@@ -85,12 +87,35 @@ cursor: pointer">
         });
     }
 
+    function getValue(formData, name) {
+        var regex = new RegExp(name + "=([^&]+)");
+        var match = (formData || "").match(regex);
+        return match && match[1];
+    }
+
     MEMRISE.garden.session_start = (function() {
         var cached_function = MEMRISE.garden.session_start;
         return function() {
+            //clears future boxes for us
             MEMRISE.garden.shouldFullyGrow = function(thinguser, learnable) {
                 return learnable.autoLearn;
             };
+
+            MEMRISE.garden.register = (function() {
+                var cached_function = MEMRISE.garden.register;
+                return function() {
+                    var box = arguments[0];
+                    if(box.learnable.autoLearn){
+                        if(arguments[1] === 1) {
+                            box.initialGrowthLevel = box.thinguser.growth_level;
+                            autoLearnedBoxes.push(box);
+                        } else {
+                            box.learnable.autoLearn = false;
+                        }
+                    }
+                    return cached_function.apply(this, arguments);
+                };
+            }());
 
             MEMRISE.garden.session.box_factory.make = (function() {
                 var cached_function = MEMRISE.garden.session.box_factory.make;
@@ -107,4 +132,37 @@ cursor: pointer">
             return cached_function.apply(this, arguments);
         };
     }());
+
+    $(document).ajaxSuccess(
+        function(event, request, settings) {
+            var thinguser = request.responseJSON && request.responseJSON.thinguser,
+                correctAnswer = getValue(settings.data, "score") === "1",
+                canUpdate = getValue(settings.data, "update_scheduling") !== "false",
+                box = thinguser && _.find(autoLearnedBoxes, b => b.learnable_id === thinguser.learnable_id),
+                isValidRequest = !!(thinguser && correctAnswer && canUpdate && box && thinguser.growth_level < 6);
+
+            if (isValidRequest) {
+                var hasGrown = getValue(settings.data, "growth_level") != thinguser.growth_level;
+                settings.data = settings.data.replace(/points=\d+(&growth_level=\d+){0,1}/, "points=0&growth_level=" + thinguser.growth_level);
+                if(hasGrown){
+                    var autoLearnCount = thinguser.growth_level - box.initialGrowthLevel + 1;
+                    var element = $('#right-area').show().find('.message').show();
+                    var message = $.parseHTML(`<div>Auto Learn +${autoLearnCount}</div>`);
+                    element.hide().removeClass("animated");
+                    $.doTimeout(100, function() {
+                        element.html(message).show().addClass("animated");
+                        flashLoadCount++;
+                    });
+                    $.doTimeout(1000, function() {
+                        if(--flashLoadCount === 0) {
+                            element.hide().removeClass("animated");
+                        }
+                    });
+                }
+                setTimeout(function(){
+                    $.post(settings.url, settings.data);
+                }, 300);
+            }
+        }
+    );
 });
