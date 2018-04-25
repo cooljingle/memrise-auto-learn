@@ -3,7 +3,7 @@
 // @namespace      https://github.com/cooljingle
 // @description    Fast-track the growth level of words you are planting
 // @match          https://www.memrise.com/course/*/garden/learn*
-// @version        0.0.10
+// @version        0.0.11
 // @updateURL      https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @grant          none
@@ -93,45 +93,40 @@ cursor: pointer">
         return match && match[1];
     }
 
-    MEMRISE.garden.session_start = (function() {
-        var cached_function = MEMRISE.garden.session_start;
-        return function() {
-            //clears future boxes for us
-            MEMRISE.garden.shouldFullyGrow = function(thinguser, learnable) {
-                return learnable.autoLearn;
-            };
-
-            MEMRISE.garden.register = (function() {
-                var cached_function = MEMRISE.garden.register;
-                return function() {
-                    var box = arguments[0];
-                    if(box.learnable.autoLearn){
-                        if(arguments[1] === 1) {
-                            box.initialGrowthLevel = box.thinguser.growth_level;
-                            autoLearnedBoxes.push(box);
-                        } else {
-                            box.learnable.autoLearn = false;
-                        }
-                    }
-                    return cached_function.apply(this, arguments);
-                };
-            }());
-
-            MEMRISE.garden.session.box_factory.make = (function() {
-                var cached_function = MEMRISE.garden.session.box_factory.make;
-                return function() {
-                    var result = cached_function.apply(this, arguments);
-                    var canAutoLearn = arguments[0].learn_session_level < 6;
-                    if(canAutoLearn) {
-                        window.setTimeout(insertAutoLearn, 0);
-                    }
-                    return result;
-                };
-            }());
-
-            return cached_function.apply(this, arguments);
+    MEMRISE.garden._events.start.push(() => {
+        //clears future boxes for us
+        MEMRISE.garden.shouldFullyGrow = function(thinguser, learnable) {
+            return learnable.autoLearn;
         };
-    }());
+
+        MEMRISE.garden.register = (function() {
+            var cached_function = MEMRISE.garden.register;
+            return function() {
+                var box = arguments[0];
+                if(box.learnable.autoLearn){
+                    if(arguments[1] === 1) {
+                        box.initialGrowthLevel = box.thinguser.growth_level;
+                        autoLearnedBoxes.push(box);
+                    } else {
+                        box.learnable.autoLearn = false;
+                    }
+                }
+                return cached_function.apply(this, arguments);
+            };
+        }());
+
+        MEMRISE.garden.session.box_factory.make = (function() {
+            var cached_function = MEMRISE.garden.session.box_factory.make;
+            return function() {
+                var result = cached_function.apply(this, arguments);
+                var canAutoLearn = arguments[0].learn_session_level < 6;
+                if(canAutoLearn) {
+                    window.setTimeout(insertAutoLearn, 0);
+                }
+                return result;
+            };
+        }());
+    });
 
     $(document).ajaxSuccess(
         function(event, request, settings) {
