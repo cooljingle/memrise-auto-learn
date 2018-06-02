@@ -3,17 +3,19 @@
 // @namespace      https://github.com/cooljingle
 // @description    Fast-track the growth level of words you are planting
 // @match          https://www.memrise.com/course/*/garden/learn*
-// @version        0.0.11
+// @version        0.0.12
 // @updateURL      https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @grant          none
 // ==/UserScript==
 
 $(document).ready(function() {
-    var localStorageKeyIdentifier = "memrise-audio-learn-key",
+    var localStorageKeyIdentifier = "memrise-auto-learn-key",
+        localStorageDefaultIdentifier = "memrise-auto-learn-default",
         autoLearnedBoxes = [],
         flashLoadCount = 0,
         shortcutKeyCode = JSON.parse(localStorage.getItem(localStorageKeyIdentifier)) || 113, //corresponds to F2 but you can replace this with your own shortcut key; see http://keycode.info/,
+        autoLearnByDefault = localStorage.getItem(localStorageDefaultIdentifier) === "true",
         linkHtml = `<a data-toggle='modal' data-target='#auto-learn-modal'>Auto Learn</a>`,
         modalHtml =
         `
@@ -29,6 +31,11 @@ $(document).ready(function() {
                     <h4>Shortcut key code:</h4>
                     <input id='auto-learn-key' type='text'  style="width:60px;height:20px" maxlength="3">
                     <em style='font-size:85%'>Default is 113 (F2); see http://keycode.info/ for other codes</em>
+                </div>
+                <br>
+                <div>
+                    <span>Auto learn by default: </span>
+                    <input id='auto-learn-default' type="checkbox" style='vertical-align: text-top; margin-left: 5px'>
                 </div>
             </div>
         </div>
@@ -47,10 +54,18 @@ $(document).ready(function() {
             shortcutKeyCode = Number($(this).val());
             localStorage.setItem(localStorageKeyIdentifier, $(this).val());
         });
+    $('#auto-learn-default').prop('checked', autoLearnByDefault);
+    $('#auto-learn-default').change(function () {
+        var checked = $(this).is(':checked');
+        autoLearnByDefault = checked;
+        if(MEMRISE.garden.box.learnable.autoLearn !== autoLearnByDefault)
+            toggleAutoLearn();
+        localStorage.setItem(localStorageDefaultIdentifier, checked);
+    });
 
     $(window).keydown(function(e) {
         if(e.which === shortcutKeyCode) {
-            $('#autoLearn').trigger('click');
+            toggleAutoLearn();
         }
     });
 
@@ -71,20 +86,23 @@ cursor: pointer">
     transform-origin: top right;
     -moz-transform: scale(1.5);
     -moz-transform-origin: top right;
-    right: -40px;
-    color: darkgrey">
-        Auto learn OFF</div>
+    right: -40px;"></div>
 </div>
-        `);
+`);
+        setAutoLearnStyles(MEMRISE.garden.box.learnable.autoLearn);
 
-        $('#autoLearn').click(function(){
-            var autoLearn = !MEMRISE.garden.box.learnable.autoLearn;
-            MEMRISE.garden.box.learnable.autoLearn = autoLearn;
-            $(this).toggleClass("due-for-review");
-            $('#autoLearnStatus')
-                .css('color', autoLearn ? 'limegreen' : 'darkgrey')
-                .text(autoLearn ? 'Auto learn ON' : 'Auto learn OFF');
-        });
+        $('#autoLearn').click(toggleAutoLearn);
+    }
+
+    function toggleAutoLearn() {
+        var autoLearn = MEMRISE.garden.box.learnable.autoLearn = !MEMRISE.garden.box.learnable.autoLearn;
+        setAutoLearnStyles(autoLearn);
+    }
+
+    function setAutoLearnStyles(autoLearn) {
+        $('#autoLearnStatus')
+            .css('color', autoLearn ? 'limegreen' : 'darkgrey')
+            .text(autoLearn ? 'Auto learn ON' : 'Auto learn OFF');
     }
 
     function getValue(formData, name) {
@@ -115,12 +133,13 @@ cursor: pointer">
             };
         }());
 
-        MEMRISE.garden.session.box_factory.make = (function() {
-            var cached_function = MEMRISE.garden.session.box_factory.make;
+        MEMRISE.garden.session.make_box = (function() {
+            var cached_function = MEMRISE.garden.session.make_box
             return function() {
                 var result = cached_function.apply(this, arguments);
                 var canAutoLearn = arguments[0].learn_session_level < 6;
                 if(canAutoLearn) {
+                    result.learnable.autoLearn = autoLearnByDefault;
                     window.setTimeout(insertAutoLearn, 0);
                 }
                 return result;
