@@ -80,14 +80,14 @@ transform-origin: top right;
 -moz-transform-origin: top right;
 cursor: pointer">
     <div id="autoLearnStatus" style="
-    top: 52px;
+    top: 0px;
     position: absolute;
     width: 100px;
     transform: scale(1.5);
     transform-origin: top right;
     -moz-transform: scale(1.5);
     -moz-transform-origin: top right;
-    right: -40px;"></div>
+    right: 80px;"></div>
 </div>
 `);
         setAutoLearnStyles(MEMRISE.garden.box.learnable.autoLearn);
