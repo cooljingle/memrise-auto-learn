@@ -4,7 +4,7 @@
 // @description    Fast-track the growth level of words you are planting
 // @match          https://www.memrise.com/course/*/garden/learn*
 // @match          https://app.memrise.com/course/*/garden/learn*
-// @version        0.0.13
+// @version        0.0.14
 // @updateURL      https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @grant          none
@@ -71,28 +71,15 @@ $(document).ready(function() {
     });
 
     function insertAutoLearn() {
-        $('.js-plant-ico').first().append(`
-<div id="autoLearn" class="ico-growth lev6 due-for-review" title="Auto learn" style="
-top: 60px;
-transform: scale(0.5);
-transform-origin: top right;
--moz-transform: scale(0.5);
--moz-transform-origin: top right;
-cursor: pointer">
-    <div id="autoLearnStatus" style="
-    top: 52px;
-    position: absolute;
-    width: 100px;
-    transform: scale(1.5);
-    transform-origin: top right;
-    -moz-transform: scale(1.5);
-    -moz-transform-origin: top right;
-    right: -40px;"></div>
-</div>
-`);
-        setAutoLearnStyles(MEMRISE.garden.box.learnable.autoLearn);
+        $('.garden-box').prepend(`<p id='autoLearn'></p>`);
+        $('#autoLearn').css({
+            'position': 'absolute',
+            'top': '-20px',
+            'cursor': 'pointer',
+        })
+            .click(toggleAutoLearn);
 
-        $('#autoLearn').click(toggleAutoLearn);
+        setAutoLearnStyles(MEMRISE.garden.box.learnable.autoLearn);
     }
 
     function toggleAutoLearn() {
@@ -101,9 +88,10 @@ cursor: pointer">
     }
 
     function setAutoLearnStyles(autoLearn) {
-        $('#autoLearnStatus')
+        $('#autoLearn')
             .css('color', autoLearn ? 'limegreen' : 'darkgrey')
-            .text(autoLearn ? 'Auto learn ON' : 'Auto learn OFF');
+            .css('right', autoLearn ? '-100px' : '-90px')
+            .text(autoLearn ? 'Auto learn ON 🌼' : 'Auto learn OFF');
     }
 
     function getValue(formData, name) {
