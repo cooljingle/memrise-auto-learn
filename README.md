@@ -6,7 +6,7 @@ This userscript allows you mark a word as learned whilst in a learning session, 
 
 Once installed, if you are on a test screen in a learning session the script will insert an option to auto learn:
 
-<img alt="screenshot" src="images/autolearn.png" width="70%" />
+<img alt="screenshot" src="images/auto-learn.png" width="50%" />
 
 To auto learn the word:
 1. Check the Auto learn option
