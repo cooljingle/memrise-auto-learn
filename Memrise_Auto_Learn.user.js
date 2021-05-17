@@ -4,7 +4,7 @@
 // @description    Fast-track the growth level of words you are planting
 // @match          https://www.memrise.com/course/*/garden/learn*
 // @match          https://app.memrise.com/course/*/garden/learn*
-// @version        0.0.14
+// @version        0.0.15
 // @updateURL      https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-auto-learn/raw/master/Memrise_Auto_Learn.user.js
 // @grant          none
@@ -112,7 +112,7 @@ $(document).ready(function() {
                 var box = arguments[0];
                 if(box.learnable.autoLearn){
                     if(arguments[1] === 1) {
-                        box.initialGrowthLevel = box.thinguser.growth_level;
+                        box.initialGrowthLevel = box.thinguser?.growth_level || 0;
                         autoLearnedBoxes.push(box);
                     } else {
                         box.learnable.autoLearn = false;
